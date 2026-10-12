@@ -2,6 +2,10 @@
 
 Creator: [@jmsgnnr](https://github.com/jmsgnnr). BudgetBuddy is the public brand. The original private planning repository has a separate history and must stay private.
 
+## Guided onboarding v2 is the active task
+
+Read `docs/GUIDED_ONBOARDING_V2.md` before working on the interface. The user's latest feedback is that the page is too long: replace the whole-form-first design with five short, progressively revealed and editable questions leading to a final plan. Preserve the existing visual identity, calculation integrity, localStorage backward compatibility, six-month goal, visible creator credit and no third-party requests. Never ship a page simply because finance unit tests pass. Cursor gets one narrow implementation assignment; ChatGPT independently tests and controls any release. Claude is escalation-only.
+
 ## Signature
 
 An indie pocket financial field guide, not an anonymous banking dashboard. Warm paper with a graph-paper dot grid, deep black type and panels, chartreuse progress accents and deliberate pink details. Heavy editorial display type + clean body + mono indexing. Clear six-month cash runway, respectful step-by-step questions and useful scenario sliders. Avoid corporate finance jargon, motivational clichés, meaningless $0 grids, blinding gradients and generic cards.

@@ -44,7 +44,7 @@
             <button type="button" id="load-demo" class="btn btn-primary">
               Try the demo
             </button>
-            <a class="btn btn-ghost" href="#calculator">Start your plan</a>
+            <a class="btn btn-ghost" href="#onboarding">Start your plan</a>
           </div>
         </div>
         <aside class="hero-aside" aria-hidden="true">
@@ -57,9 +57,317 @@
         </aside>
       </section>
 
-      <section class="panel results plan-board" aria-labelledby="results-heading" aria-live="polite">
-        <div class="section-label mono">03 / The plan</div>
-        <h2 id="results-heading" class="display-heading">Your runway</h2>
+      <section
+        id="onboarding"
+        class="panel onboarding"
+        aria-labelledby="onboarding-heading"
+      >
+        <div class="onboarding-intro">
+          <div class="section-label mono">01 / Five questions</div>
+          <h2 id="onboarding-heading" class="display-heading onboarding-title">
+            Answer five short questions.
+          </h2>
+          <p class="hint onboarding-lede">
+            One step at a time. Edit any answer before you see your full plan.
+          </p>
+          <p id="onboarding-progress" class="onboarding-progress mono" aria-live="polite">
+            Step 01 of 05
+          </p>
+        </div>
+
+        <form
+          id="calculator"
+          class="plan-form onboarding-form"
+          aria-labelledby="onboarding-heading"
+          novalidate
+        >
+          <ol class="onboarding-steps" role="list">
+            <li class="onboarding-step" data-step="1">
+              <div class="step-shell" id="step-1">
+                <button
+                  type="button"
+                  class="step-toggle"
+                  id="step-1-toggle"
+                  aria-expanded="true"
+                  aria-controls="step-1-panel"
+                >
+                  <span class="step-index mono">01</span>
+                  <span class="step-toggle-text">
+                    <span class="step-question">How much actually lands in your account?</span>
+                    <span class="step-summary-line" id="step-1-summary" hidden></span>
+                  </span>
+                  <span class="step-edit mono" hidden>Edit</span>
+                </button>
+                <div id="step-1-panel" class="step-panel">
+                  <p class="hint">
+                    Take-home pay after taxes and paycheck deductions. Pick how often you are paid.
+                  </p>
+                  <div class="field-stack">
+                    <label for="income">
+                      Take-home amount
+                      <input
+                        id="income"
+                        name="income"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        inputmode="decimal"
+                        placeholder="e.g. 2100"
+                      />
+                    </label>
+                    <label for="income-pay-period">
+                      Pay frequency
+                      <select id="income-pay-period" name="incomePayPeriod">
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">Every 2 weeks</option>
+                        <option value="semimonthly">Twice a month</option>
+                        <option value="monthly" selected>Monthly</option>
+                        <option value="yearly">Yearly</option>
+                      </select>
+                    </label>
+                  </div>
+                  <p class="income-equiv mono" aria-live="polite">
+                    Monthly equivalent:
+                    <strong id="income-monthly-display">...</strong>
+                  </p>
+                  <div class="step-actions">
+                    <button type="button" class="btn btn-primary step-continue" data-step="1">
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </li>
+
+            <li class="onboarding-step is-locked" data-step="2">
+              <div class="step-shell" id="step-2">
+                <button
+                  type="button"
+                  class="step-toggle"
+                  id="step-2-toggle"
+                  aria-expanded="false"
+                  aria-controls="step-2-panel"
+                  disabled
+                >
+                  <span class="step-index mono">02</span>
+                  <span class="step-toggle-text">
+                    <span class="step-question">What does it cost to keep life running?</span>
+                    <span class="step-summary-line" id="step-2-summary" hidden></span>
+                  </span>
+                  <span class="step-edit mono" hidden>Edit</span>
+                </button>
+                <div id="step-2-panel" class="step-panel" hidden>
+                  <p class="hint">
+                    One monthly total for rent, groceries, utilities, transportation, insurance and
+                    other essentials. Debt minimums are separate in step 4 unless you fold them in here.
+                  </p>
+                  <label for="essentials">
+                    Monthly essentials
+                    <input
+                      id="essentials"
+                      name="essentials"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      inputmode="decimal"
+                      placeholder="e.g. 2100"
+                    />
+                  </label>
+                  <div class="step-actions">
+                    <button type="button" class="btn btn-secondary step-back" data-step="2">
+                      Back
+                    </button>
+                    <button type="button" class="btn btn-primary step-continue" data-step="2">
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </li>
+
+            <li class="onboarding-step is-locked" data-step="3">
+              <div class="step-shell" id="step-3">
+                <button
+                  type="button"
+                  class="step-toggle"
+                  id="step-3-toggle"
+                  aria-expanded="false"
+                  aria-controls="step-3-panel"
+                  disabled
+                >
+                  <span class="step-index mono">03</span>
+                  <span class="step-toggle-text">
+                    <span class="step-question">How much goes toward everything else?</span>
+                    <span class="step-summary-line" id="step-3-summary" hidden></span>
+                  </span>
+                  <span class="step-edit mono" hidden>Edit</span>
+                </button>
+                <div id="step-3-panel" class="step-panel" hidden>
+                  <p class="hint">
+                    Dining, subscriptions, shopping, trips and hobbies. One monthly number is enough.
+                  </p>
+                  <label for="wants">
+                    Monthly fun and extras
+                    <input
+                      id="wants"
+                      name="wants"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      inputmode="decimal"
+                      placeholder="e.g. 650"
+                    />
+                  </label>
+                  <div class="step-actions">
+                    <button type="button" class="btn btn-secondary step-back" data-step="3">
+                      Back
+                    </button>
+                    <button type="button" class="btn btn-primary step-continue" data-step="3">
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </li>
+
+            <li class="onboarding-step is-locked" data-step="4">
+              <div class="step-shell" id="step-4">
+                <button
+                  type="button"
+                  class="step-toggle"
+                  id="step-4-toggle"
+                  aria-expanded="false"
+                  aria-controls="step-4-panel"
+                  disabled
+                >
+                  <span class="step-index mono">04</span>
+                  <span class="step-toggle-text">
+                    <span class="step-question">Any debt to work around?</span>
+                    <span class="step-summary-line" id="step-4-summary" hidden></span>
+                  </span>
+                  <span class="step-edit mono" hidden>Edit</span>
+                </button>
+                <div id="step-4-panel" class="step-panel" hidden>
+                  <p class="hint">Optional details. Choosing No keeps debt out of your plan math.</p>
+                  <div
+                    class="debt-choice"
+                    role="group"
+                    aria-labelledby="debt-choice-label"
+                  >
+                    <p id="debt-choice-label" class="mono debt-choice-label">Do you want to list debt?</p>
+                    <div class="debt-choice-buttons">
+                      <button type="button" class="btn btn-secondary debt-choice-btn" data-debt-choice="yes">
+                        Yes
+                      </button>
+                      <button type="button" class="btn btn-secondary debt-choice-btn" data-debt-choice="no">
+                        No
+                      </button>
+                    </div>
+                  </div>
+
+                  <div id="debts-section" class="debts-panel" hidden>
+                    <div class="section-head">
+                      <h3 id="debts-heading">Debt details</h3>
+                      <button type="button" id="add-debt" class="btn btn-secondary">Add debt</button>
+                    </div>
+                    <p class="hint">Label, balance, APR, and required monthly minimum for each.</p>
+                    <div id="debt-list" class="debt-list" aria-labelledby="debts-heading"></div>
+                    <label for="debt-method" class="inline-label">
+                      Payoff priority method
+                      <select id="debt-method" name="debtMethod">
+                        <option value="avalanche">Avalanche (highest APR first)</option>
+                        <option value="snowball">Snowball (smallest balance first)</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div class="step-actions">
+                    <button type="button" class="btn btn-secondary step-back" data-step="4">
+                      Back
+                    </button>
+                    <button type="button" class="btn btn-primary step-continue" data-step="4">
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </li>
+
+            <li class="onboarding-step is-locked" data-step="5">
+              <div class="step-shell" id="step-5">
+                <button
+                  type="button"
+                  class="step-toggle"
+                  id="step-5-toggle"
+                  aria-expanded="false"
+                  aria-controls="step-5-panel"
+                  disabled
+                >
+                  <span class="step-index mono">05</span>
+                  <span class="step-toggle-text">
+                    <span class="step-question">How much do you already have set aside?</span>
+                    <span class="step-summary-line" id="step-5-summary" hidden></span>
+                  </span>
+                  <span class="step-edit mono" hidden>Edit</span>
+                </button>
+                <div id="step-5-panel" class="step-panel" hidden>
+                  <p class="hint">
+                    Accessible cash in savings, not investments or retirement accounts.
+                  </p>
+                  <label for="current-savings">
+                    Current emergency savings
+                    <input
+                      id="current-savings"
+                      name="currentSavings"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      inputmode="decimal"
+                      placeholder="e.g. 350"
+                    />
+                  </label>
+
+                  <fieldset class="starter-fieldset">
+                    <legend class="mono">Starter cushion target</legend>
+                    <p class="hint">Keep this in bank savings. Capped at your six-month goal.</p>
+                    <div class="radio-stack">
+                      <label class="radio-card">
+                        <input type="radio" name="starterGoal" value="500" />
+                        <span>$500</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="starterGoal" value="1000" checked />
+                        <span>$1,000 (default)</span>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <div class="step-actions">
+                    <button type="button" class="btn btn-secondary step-back" data-step="5">
+                      Back
+                    </button>
+                    <button type="button" class="btn btn-primary step-continue" data-step="5">
+                      See my plan
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ol>
+        </form>
+      </section>
+
+      <div id="input-warning" class="banner banner-warn" role="status" hidden></div>
+
+      <section
+        class="panel results plan-board is-locked"
+        id="plan-results"
+        aria-labelledby="results-heading"
+        aria-live="polite"
+        hidden
+      >
+        <div class="section-label mono">02 / Your plan</div>
+        <h2 id="results-heading" class="display-heading" tabindex="-1">Your runway</h2>
 
         <div class="runway-board">
           <div class="runway-head">
@@ -137,111 +445,8 @@
         </div>
       </section>
 
-      <form
-        id="calculator"
-        class="plan-form panel"
-        aria-labelledby="form-heading"
-        novalidate
-      >
-        <div class="section-label mono">01 / The numbers</div>
-        <h2 id="form-heading">Start with what hits your account.</h2>
-
-        <div class="field-grid">
-          <label for="income">
-            Monthly take-home income
-            <span class="hint">After taxes and paycheck deductions</span>
-            <input
-              id="income"
-              name="income"
-              type="number"
-              min="0"
-              step="0.01"
-              inputmode="decimal"
-              placeholder="e.g. 4200"
-            />
-          </label>
-
-          <label for="essentials">
-            Monthly essential spending (no debt payments)
-            <span class="hint">Housing, groceries, transport, utilities, insurance</span>
-            <input
-              id="essentials"
-              name="essentials"
-              type="number"
-              min="0"
-              step="0.01"
-              inputmode="decimal"
-              placeholder="e.g. 2100"
-            />
-          </label>
-
-          <label for="wants">
-            Monthly discretionary spending
-            <span class="hint">Dining out, subscriptions, shopping, fun money</span>
-            <input
-              id="wants"
-              name="wants"
-              type="number"
-              min="0"
-              step="0.01"
-              inputmode="decimal"
-              placeholder="e.g. 650"
-            />
-          </label>
-
-          <label for="current-savings">
-            Current emergency savings
-            <span class="hint">Cash in an accessible savings account today</span>
-            <input
-              id="current-savings"
-              name="currentSavings"
-              type="number"
-              min="0"
-              step="0.01"
-              inputmode="decimal"
-              placeholder="e.g. 350"
-            />
-          </label>
-        </div>
-
-        <fieldset class="starter-fieldset">
-          <legend class="mono">Starter cushion target</legend>
-          <p class="hint">Keep this in bank savings, not invested. Capped at your six-month goal.</p>
-          <div class="radio-stack">
-            <label class="radio-card">
-              <input type="radio" name="starterGoal" value="500" />
-              <span>$500</span>
-            </label>
-            <label class="radio-card">
-              <input type="radio" name="starterGoal" value="1000" checked />
-              <span>$1,000 (default)</span>
-            </label>
-          </div>
-        </fieldset>
-
-        <details id="debts-section" class="debts-section">
-          <summary class="debt-summary"><span>02 / DEBT, IF ANY</span><span class="debt-summary__hint">Optional. Open to add debts.</span></summary>
-          <div class="section-head">
-            <h3 id="debts-heading">Optional. No shame if you skip it.</h3>
-            <button type="button" id="add-debt" class="btn btn-secondary">Add debt</button>
-          </div>
-          <p class="hint">Label, balance, APR, and required monthly minimum for each.</p>
-          <div id="debt-list" class="debt-list" aria-labelledby="debts-heading"></div>
-
-          <label for="debt-method" class="inline-label">
-            Payoff priority method
-            <select id="debt-method" name="debtMethod">
-              <option value="avalanche">Avalanche (highest APR first)</option>
-              <option value="snowball">Snowball (smallest balance first)</option>
-            </select>
-          </label>
-        </details>
-      </form>
-
-      <div id="input-warning" class="banner banner-warn" role="status" hidden></div>
-
-      <section class="panel scenario-panel" aria-labelledby="scenario-heading">
-        <div class="section-label mono">04 / Change the math</div>
+      <section class="panel scenario-panel is-locked" id="scenario-section" aria-labelledby="scenario-heading" hidden>
+        <div class="section-label mono">03 / Change the math</div>
         <h2 id="scenario-heading">Try a tweak before you commit.</h2>
         <p class="scenario-empty" id="scenario-empty" hidden>Enter your income and essential spending first. Then you can test how small changes affect your savings.</p>
 

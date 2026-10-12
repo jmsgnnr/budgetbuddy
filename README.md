@@ -2,7 +2,9 @@
 
 **Created by [@jmsgnnr](https://github.com/jmsgnnr).**
 
-A free, standalone, browser-only field guide for budgeting and financial stability. Pocket-sized in spirit: six months of essentials in cash, debt payoff order, and simple what-if sliders. No bank login required.
+A free, standalone, browser-only field guide to financial stability. **Five short questions, one at a time:** how much you take home, what necessities cost, what you spend for fun, whether you have debt, and your emergency cash savings. BudgetBuddy then shows a clear next move and a six-month savings runway. No bank login required.
+
+The questions unfold as a keyboard-accessible accordion. Completed answers become editable summaries. Pay frequency supports weekly, biweekly, twice monthly, monthly, and yearly income, with a consistent monthly equivalent. Existing saved plans are migrated in the browser. See [the guided onboarding brief](docs/GUIDED_ONBOARDING_V2.md).
 
 **Live app:** https://jmsgnnr.github.io/budgetbuddy/
 

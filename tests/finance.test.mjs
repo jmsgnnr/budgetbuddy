@@ -5,6 +5,11 @@ import {
   sixMonthTarget,
   effectiveStarterGoal,
   monthlySurplus,
+  monthlyFromPayPeriod,
+  resolveMonthlyIncome,
+  validateIncomeStep,
+  validateAmountStep,
+  validateDebtChoiceStep,
   runwayMonths,
   sortDebtsForPriority,
   monthsToSixMonthReserve,
@@ -13,6 +18,61 @@ import {
   STAGES,
   totalDebtMinimums,
 } from "../finance.mjs";
+
+describe("monthlyFromPayPeriod", () => {
+  it("converts pay cadences to monthly equivalents", () => {
+    assert.equal(monthlyFromPayPeriod(1200, "weekly"), (1200 * 52) / 12);
+    assert.equal(monthlyFromPayPeriod(2400, "biweekly"), (2400 * 26) / 12);
+    assert.equal(monthlyFromPayPeriod(1500, "semimonthly"), 3000);
+    assert.equal(monthlyFromPayPeriod(4200, "monthly"), 4200);
+    assert.equal(monthlyFromPayPeriod(60000, "yearly"), 5000);
+  });
+
+  it("returns null for invalid amounts or periods", () => {
+    assert.equal(monthlyFromPayPeriod(null, "monthly"), null);
+    assert.equal(monthlyFromPayPeriod(100, "quarterly"), null);
+  });
+});
+
+describe("resolveMonthlyIncome", () => {
+  it("does not double-convert legacy monthly saves", () => {
+    assert.equal(
+      resolveMonthlyIncome({
+        income: "4200",
+        incomePayPeriod: "weekly",
+        incomeLegacyMonthly: true,
+      }),
+      4200
+    );
+  });
+
+  it("converts raw paycheck amounts for new saves", () => {
+    assert.equal(
+      resolveMonthlyIncome({
+        income: "1000",
+        incomePayPeriod: "weekly",
+        incomeLegacyMonthly: false,
+      }),
+      (1000 * 52) / 12
+    );
+  });
+});
+
+describe("onboarding validation", () => {
+  it("accepts zero income but not blank or negative", () => {
+    assert.equal(validateIncomeStep("0", "monthly"), true);
+    assert.equal(validateIncomeStep("", "monthly"), false);
+    assert.equal(validateIncomeStep("-1", "monthly"), false);
+  });
+
+  it("validates amount steps and debt choice", () => {
+    assert.equal(validateAmountStep("0"), true);
+    assert.equal(validateAmountStep(""), false);
+    assert.equal(validateDebtChoiceStep(true), true);
+    assert.equal(validateDebtChoiceStep(false), true);
+    assert.equal(validateDebtChoiceStep(null), false);
+  });
+});
 
 describe("parseAmount", () => {
   it("returns null for blank or invalid", () => {
