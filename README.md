@@ -1,16 +1,16 @@
-# Mubu | Stability Planner
+# BudgetBuddy
 
 **Created by [@jmsgnnr](https://github.com/jmsgnnr).**
 
-A free, standalone, browser-only budgeting and financial stability planning app.
+A free, standalone, browser-only field guide for budgeting and financial stability. Pocket-sized in spirit: six months of essentials in cash, debt payoff order, and simple what-if sliders. No bank login required.
 
-**Live app:** https://jmsgnnr.github.io/mubu-stability-planner/
+**Live app:** https://jmsgnnr.github.io/budgetbuddy/
 
 ## What it does
 
 - Calculate monthly take-home surplus after essential expenses, discretionary spending and minimum debt payments.
 - Track the first $500–$1,000 emergency buffer and a longer-term cash reserve target of **six months of essential living expenses**.
-- See current savings runway, outstanding debt and debt payoff order (avalanche vs snowball).
+- See current savings runway (six bold month segments), outstanding debt and debt payoff order (avalanche vs snowball).
 - Compare optional spending reductions and approximate emergency-savings timelines.
 - Save data **in this browser only**, export a JSON backup or erase it with confirmation.
 - Try clearly fictional demo numbers without entering any personal financial data.

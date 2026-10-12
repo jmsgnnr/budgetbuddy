@@ -5,83 +5,225 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Mubu Stability Planner — build a six-month emergency fund, pay down debt, and stay on track. Browser-only, no accounts."
+      content="BudgetBuddy: a browser-only field guide to six months of essential expenses in cash, debt order, and simple what-if scenarios."
     />
-    <title>Mubu | Stability Planner</title>
+    <title>BudgetBuddy | Field guide to stability</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>
+
     <header class="site-header">
       <div class="brand">
-        <img src="favicon.svg" alt="" width="32" height="32" class="brand-mark" />
-        <div>
-          <p class="brand-name">Mubu</p>
-          <p class="brand-tag">Stability Planner</p>
+        <img src="favicon.svg" alt="" width="36" height="36" class="brand-mark" />
+        <div class="brand-copy">
+          <p class="brand-name">BudgetBuddy</p>
+          <p class="brand-tag">A field guide to financial stability</p>
         </div>
       </div>
-      <p class="header-note">Your data stays on this device · No bank connections</p>
+      <p class="header-meta">
+        <span class="mono">Local only</span>
+        · Money stays in this browser
+        · <a href="https://github.com/jmsgnnr" rel="author">@jmsgnnr</a>
+      </p>
     </header>
 
     <div id="storage-banner" class="banner" role="status" hidden></div>
 
     <main id="main" class="layout">
-      <section class="panel intro" aria-labelledby="intro-heading">
-        <h1 id="intro-heading">Plan toward six months of essentials in cash</h1>
-        <p>
-          Enter your monthly numbers honestly. We’ll show a simple path: starter emergency buffer,
-          high-interest debt, then a six-month cash reserve. Many people aim for 3–6 months depending
-          on job stability and dependents; <strong>six months is a goal here, not a guarantee for everyone.</strong>
-        </p>
+      <section class="hero" aria-labelledby="hero-heading">
+        <div class="hero-copy">
+          <p class="hero-kicker mono">Issue 01 · Stability edition</p>
+          <h1 id="hero-heading">Six months of breathing room.</h1>
+          <p class="hero-lede">
+            A plan for the money you have, not the life you are supposed to have.
+            No lectures. Just numbers.
+          </p>
+          <div class="hero-actions">
+            <button type="button" id="load-demo" class="btn btn-primary">
+              Try the demo
+            </button>
+            <a class="btn btn-ghost" href="#calculator">Start your plan</a>
+          </div>
+        </div>
+        <aside class="hero-aside" aria-hidden="true">
+          <p class="hero-aside-number mono">FIELD NOTES / 001</p>
+          <div class="hero-stamp">KEEP<br>YOUR<br>BUFFER<span>.</span></div>
+          <div class="hero-aside-foot mono">
+            <span>CASH, NOT GUESSWORK</span>
+            <span>6 MONTH TARGET / NO LOGIN</span>
+          </div>
+        </aside>
       </section>
 
-      <form class="plan-form panel" aria-labelledby="form-heading" novalidate>
-        <h2 id="form-heading">Your monthly picture</h2>
+      <section class="panel results plan-board" aria-labelledby="results-heading" aria-live="polite">
+        <div class="section-label mono">03 / The plan</div>
+        <h2 id="results-heading" class="display-heading">Your runway</h2>
+
+        <div class="runway-board">
+          <div class="runway-head">
+            <p class="runway-kicker mono">Months of essentials in cash</p>
+            <p class="runway-count" aria-describedby="runway">
+              <span id="runway-filled-display" class="runway-digits">00</span>
+              <span class="runway-of">of</span>
+              <span class="runway-total">06</span>
+              <span class="runway-unit">months</span>
+            </p>
+          </div>
+          <div
+            id="runway-segments"
+            class="runway-segments"
+            role="img"
+            aria-labelledby="runway-segments-label"
+          >
+            <span id="runway-segments-label" class="sr-only">Emergency runway by month</span>
+            <div class="runway-segment" data-month="1"></div>
+            <div class="runway-segment" data-month="2"></div>
+            <div class="runway-segment" data-month="3"></div>
+            <div class="runway-segment" data-month="4"></div>
+            <div class="runway-segment" data-month="5"></div>
+            <div class="runway-segment" data-month="6"></div>
+          </div>
+          <p id="runway" class="runway-detail mono">Enter essentials to measure runway</p>
+        </div>
+
+        <div class="stage-block">
+          <p class="stage-kicker mono">Current stage</p>
+          <p class="stage"><span class="stage-label" id="stage-label">Getting oriented</span></p>
+          <p id="next-action" class="next-action">Let's find your breathing room.</p>
+        </div>
+
+        <div class="metric-strip">
+          <article class="metric">
+            <h3 class="mono">Money left after bills</h3>
+            <p id="surplus-value" class="metric-value">...</p>
+            <p id="surplus-hint" class="hint"></p>
+          </article>
+          <article class="metric">
+            <h3 class="mono">Safe this month</h3>
+            <p id="safe-to-spend" class="metric-value">...</p>
+            <p class="hint">After essentials and debt minimums (wants budgeted separately)</p>
+          </article>
+          <article class="metric">
+            <h3 class="mono">Debt on the table</h3>
+            <p class="metric-value">
+              <span id="debt-total">...</span>
+              <span class="metric-sub"> · top APR <span id="debt-apr">...</span></span>
+            </p>
+          </article>
+        </div>
+
+        <div class="progress-block">
+          <div class="progress-item">
+            <div class="progress-row">
+              <span class="mono">Starter cushion (<span id="starter-target">...</span>)</span>
+              <span id="starter-pct">0%</span>
+            </div>
+            <div class="progress-track"><div id="starter-bar" class="progress-fill starter"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-row">
+              <span class="mono">Six-month reserve (<span id="six-month-target">...</span>)</span>
+              <span id="six-pct">0%</span>
+            </div>
+            <div class="progress-track"><div id="six-bar" class="progress-fill reserve"></div></div>
+          </div>
+        </div>
+
+        <div class="debt-priority">
+          <h3 class="mono">Payoff order</h3>
+          <ol id="priority-debts" class="debt-order"></ol>
+        </div>
+      </section>
+
+      <form
+        id="calculator"
+        class="plan-form panel"
+        aria-labelledby="form-heading"
+        novalidate
+      >
+        <div class="section-label mono">01 / The numbers</div>
+        <h2 id="form-heading">Start with what hits your account.</h2>
 
         <div class="field-grid">
           <label for="income">
             Monthly take-home income
             <span class="hint">After taxes and paycheck deductions</span>
-            <input id="income" name="income" type="number" min="0" step="0.01" inputmode="decimal" placeholder="e.g. 4200" />
+            <input
+              id="income"
+              name="income"
+              type="number"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              placeholder="e.g. 4200"
+            />
           </label>
 
           <label for="essentials">
             Monthly essential spending (no debt payments)
             <span class="hint">Housing, groceries, transport, utilities, insurance</span>
-            <input id="essentials" name="essentials" type="number" min="0" step="0.01" inputmode="decimal" placeholder="e.g. 2100" />
+            <input
+              id="essentials"
+              name="essentials"
+              type="number"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              placeholder="e.g. 2100"
+            />
           </label>
 
           <label for="wants">
             Monthly discretionary spending
             <span class="hint">Dining out, subscriptions, shopping, fun money</span>
-            <input id="wants" name="wants" type="number" min="0" step="0.01" inputmode="decimal" placeholder="e.g. 650" />
+            <input
+              id="wants"
+              name="wants"
+              type="number"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              placeholder="e.g. 650"
+            />
           </label>
 
           <label for="current-savings">
             Current emergency savings
             <span class="hint">Cash in an accessible savings account today</span>
-            <input id="current-savings" name="currentSavings" type="number" min="0" step="0.01" inputmode="decimal" placeholder="e.g. 350" />
+            <input
+              id="current-savings"
+              name="currentSavings"
+              type="number"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              placeholder="e.g. 350"
+            />
           </label>
         </div>
 
         <fieldset class="starter-fieldset">
-          <legend>Starter emergency buffer target</legend>
-          <p class="hint">Keep this in bank savings — not invested. Capped at your six-month goal.</p>
-          <label class="radio-pill">
-            <input type="radio" name="starterGoal" value="500" />
-            $500
-          </label>
-          <label class="radio-pill">
-            <input type="radio" name="starterGoal" value="1000" checked />
-            $1,000 (default)
-          </label>
+          <legend class="mono">Starter cushion target</legend>
+          <p class="hint">Keep this in bank savings, not invested. Capped at your six-month goal.</p>
+          <div class="radio-stack">
+            <label class="radio-card">
+              <input type="radio" name="starterGoal" value="500" />
+              <span>$500</span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="starterGoal" value="1000" checked />
+              <span>$1,000 (default)</span>
+            </label>
+          </div>
         </fieldset>
 
-        <div class="debts-section">
+        <details id="debts-section" class="debts-section">
+          <summary class="debt-summary"><span>02 / DEBT, IF ANY</span><span class="debt-summary__hint">Optional. Open to add debts.</span></summary>
           <div class="section-head">
-            <h3 id="debts-heading">Consumer debt (optional)</h3>
-            <button type="button" id="add-debt" class="btn secondary">Add debt</button>
+            <h3 id="debts-heading">Optional. No shame if you skip it.</h3>
+            <button type="button" id="add-debt" class="btn btn-secondary">Add debt</button>
           </div>
           <p class="hint">Label, balance, APR, and required monthly minimum for each.</p>
           <div id="debt-list" class="debt-list" aria-labelledby="debts-heading"></div>
@@ -93,77 +235,40 @@
               <option value="snowball">Snowball (smallest balance first)</option>
             </select>
           </label>
-        </div>
-
-        <div class="actions-row">
-          <button type="button" id="load-demo" class="btn secondary">
-            Load fictional demo numbers
-          </button>
-        </div>
+        </details>
       </form>
 
-      <div id="input-warning" class="banner" role="status" hidden></div>
+      <div id="input-warning" class="banner banner-warn" role="status" hidden></div>
 
-      <section class="panel results" aria-labelledby="results-heading" aria-live="polite">
-        <h2 id="results-heading">At a glance</h2>
-
-        <div class="stat-grid">
-          <article class="stat">
-            <h3>Monthly surplus</h3>
-            <p id="surplus-value" class="stat-value">—</p>
-            <p id="surplus-hint" class="hint"></p>
-          </article>
-          <article class="stat">
-            <h3>Runway (months of essentials)</h3>
-            <p id="runway" class="stat-value">—</p>
-          </article>
-          <article class="stat">
-            <h3>Available after essentials + debt minimums</h3>
-            <p id="safe-to-spend" class="stat-value">—</p>
-            <p class="hint">Income minus essentials and debt minimums (wants budgeted separately)</p>
-          </article>
-          <article class="stat">
-            <h3>Total debt · highest APR</h3>
-            <p class="stat-value"><span id="debt-total">—</span> · <span id="debt-apr">—</span></p>
-          </article>
-        </div>
-
-        <div class="progress-block">
-          <div class="progress-row">
-            <span>Starter buffer (<span id="starter-target">—</span>)</span>
-            <span id="starter-pct">0%</span>
-          </div>
-          <div class="progress-track"><div id="starter-bar" class="progress-fill"></div></div>
-          <div class="progress-row">
-            <span>Six-month reserve (<span id="six-month-target">—</span>)</span>
-            <span id="six-pct">0%</span>
-          </div>
-          <div class="progress-track"><div id="six-bar" class="progress-fill accent"></div></div>
-        </div>
-
-        <p class="stage"><span class="stage-label" id="stage-label">—</span></p>
-        <p id="next-action" class="next-action"></p>
-
-        <h3>Debt priority order</h3>
-        <ol id="priority-debts" class="debt-order"></ol>
+      <section class="panel scenario-panel" aria-labelledby="scenario-heading">
+        <div class="section-label mono">04 / Change the math</div>
+        <h2 id="scenario-heading">Try a tweak before you commit.</h2>
+        <p class="scenario-empty" id="scenario-empty" hidden>Enter your income and essential spending first. Then you can test how small changes affect your savings.</p>
 
         <div class="sliders">
           <label for="emergency-slider">
-            Monthly amount toward emergency fund (current plan)
-            <output id="emergency-slider-label" for="emergency-slider">$0</output>
+            <span class="slider-title">Monthly amount toward emergency fund (current plan)</span>
+            <output id="emergency-slider-label" class="slider-output mono" for="emergency-slider">$0</output>
             <input type="range" id="emergency-slider" min="0" max="0" step="10" value="0" />
           </label>
 
           <label for="wants-cut-slider">
-            What if I cut wants by this much? (scenario preview)
-            <output id="wants-cut-label" for="wants-cut-slider">$0</output>
+            <span class="slider-title">What if I cut wants by this much? (scenario preview)</span>
+            <output id="wants-cut-label" class="slider-output mono" for="wants-cut-slider">$0</output>
             <input type="range" id="wants-cut-slider" min="0" max="0" step="10" value="0" />
           </label>
         </div>
 
         <div class="timeline-compare">
-          <p><strong>Current plan</strong> — time to six-month reserve: <span id="months-current">—</span></p>
-          <p><strong>Scenario</strong> — surplus <span id="scenario-surplus">—</span>; time to six-month reserve: <span id="months-scenario">—</span></p>
+          <div class="compare-col">
+            <p class="mono compare-label">Current plan</p>
+            <p>Time to six-month reserve: <strong id="months-current">...</strong></p>
+          </div>
+          <div class="compare-col compare-col-accent">
+            <p class="mono compare-label">Scenario</p>
+            <p>Surplus <span id="scenario-surplus">...</span></p>
+            <p>Time to six-month reserve: <strong id="months-scenario">...</strong></p>
+          </div>
           <p class="hint fine">
             Cutting wants in the scenario assumes the full reduction goes into emergency savings.
             Timelines are approximate and exclude debt payoff time, changing expenses, emergencies, and changing debt schedules. Prioritize debt when your plan recommends it.
@@ -171,33 +276,43 @@
         </div>
       </section>
 
-      <section class="panel how" aria-labelledby="how-heading">
-        <h2 id="how-heading">How this plan works</h2>
-        <ol>
-          <li><strong>Starter buffer</strong> — Small cash cushion so minor emergencies don’t become new debt.</li>
-          <li><strong>Debt acceleration</strong> — Pay all minimums; send extra to one target (avalanche or snowball).</li>
-          <li><strong>Six-month reserve</strong> — Build accessible cash equal to six months of essential spending, then consider investing separately.</li>
-        </ol>
-        <h3>Assumptions</h3>
-        <ul>
-          <li>Numbers are monthly and based on what you enter — not bank feeds.</li>
-          <li>Emergency money belongs in savings accounts, not the stock market.</li>
-          <li>This tool is educational planning, not personalized financial, tax, or legal advice.</li>
-        </ul>
-      </section>
+      <details class="panel fine-print">
+        <summary class="fine-print-summary mono">The fine print</summary>
+        <div class="fine-print-body">
+          <h3>How this plan works</h3>
+          <ol>
+            <li><strong>Starter cushion</strong> · Small cash buffer so minor emergencies do not become new debt.</li>
+            <li><strong>Debt acceleration</strong> · Pay all minimums; send extra to one target (avalanche or snowball).</li>
+            <li><strong>Six-month reserve</strong> · Build accessible cash equal to six months of essential spending, then consider investing separately.</li>
+          </ol>
+          <h3>Assumptions</h3>
+          <ul>
+            <li>Numbers are monthly and based on what you enter, not bank feeds.</li>
+            <li>Six months is a planning goal here, not a universal rule. Job stability and dependents change what you need.</li>
+            <li>Emergency money belongs in savings accounts, not the stock market.</li>
+            <li>Required debt minimums are not automatically included in the six-month reserve estimate. Add them to essentials if you want those payments covered.</li>
+            <li>This tool is educational planning, not personalized financial, tax, or legal advice.</li>
+          </ul>
+        </div>
+      </details>
 
       <section class="panel data-tools" aria-labelledby="data-heading">
-        <h2 id="data-heading">Your data</h2>
-        <p class="hint">Stored locally in this browser. Nothing is uploaded.</p>
+        <div class="section-label mono">Your data</div>
+        <h2 id="data-heading">Saved on this device only</h2>
+        <p class="hint">Export a backup or erase everything. Nothing is uploaded.</p>
         <div class="actions-row">
-          <button type="button" id="export-json" class="btn secondary">Export JSON backup</button>
-          <button type="button" id="clear-data" class="btn danger">Erase saved data</button>
+          <button type="button" id="export-json" class="btn btn-secondary">Export JSON backup</button>
+          <button type="button" id="clear-data" class="btn btn-danger">Erase saved data</button>
         </div>
       </section>
     </main>
 
     <footer class="site-footer">
-      <p>Mubu Stability Planner · Created by <a href="https://github.com/jmsgnnr" rel="author">@jmsgnnr</a> · Phase 1 prototype</p>
+      <p>
+        BudgetBuddy · Created by
+        <a href="https://github.com/jmsgnnr" rel="author">@jmsgnnr</a>
+        · Phase 1 field guide
+      </p>
     </footer>
 
     <script type="module" src="app.mjs"></script>

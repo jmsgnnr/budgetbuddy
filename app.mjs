@@ -3,6 +3,7 @@ import {
   STARTER_OPTIONS,
   computePlan,
   demoInput,
+  parseAmount,
   sanitizeLabel,
 } from "./finance.mjs";
 
@@ -15,7 +16,7 @@ function $(id) {
 }
 
 function formatMoney(n) {
-  if (!Number.isFinite(n)) return "—";
+  if (!Number.isFinite(n)) return "...";
   return n.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
@@ -130,7 +131,7 @@ function saveToStorage() {
   } catch {
     banner.hidden = false;
     banner.textContent =
-      "Could not save to this browser’s storage. Your plan still works — export a backup if you want to keep it.";
+      "Could not save to this browser's storage. Your plan still works. Export a backup if you want to keep it.";
   }
 }
 
@@ -157,7 +158,7 @@ function exportJson() {
   });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "mubu-stability-plan.json";
+  a.download = "budgetbuddy-plan.json";
   a.click();
   URL.revokeObjectURL(a.href);
 }
@@ -186,6 +187,7 @@ function clearStorage() {
     wantsCutScenario: "0",
     debts: [],
   });
+  $("debts-section").open = false;
   refresh();
 }
 
@@ -199,7 +201,7 @@ function renderDebtList(plan) {
   list.innerHTML = "";
   plan.priorityDebts.forEach((d, i) => {
     const li = document.createElement("li");
-    li.textContent = `${i + 1}. ${sanitizeLabel(d.label)} — ${formatMoney(d.balance)} at ${d.apr}% APR (min ${formatMoney(d.minimumPayment)})`;
+    li.textContent = `${sanitizeLabel(d.label)} · ${formatMoney(d.balance)} at ${d.apr}% APR (min ${formatMoney(d.minimumPayment)})`;
     list.appendChild(li);
   });
   if (plan.priorityDebts.length === 0) {
@@ -220,6 +222,12 @@ function refresh() {
     : '';
   const state = readFormState();
   let plan = computePlan(state);
+  const readyForPlan = parseAmount(state.income) !== null &&
+    parseAmount(state.essentials) !== null && Number(state.essentials) > 0;
+  document.querySelector(".plan-board")?.classList.toggle("is-empty", !readyForPlan);
+  document.querySelector(".scenario-panel")?.classList.toggle("is-empty", !readyForPlan);
+  const scenarioEmpty = $("scenario-empty");
+  if (scenarioEmpty) scenarioEmpty.hidden = readyForPlan;
 
   const surplusEl = $("surplus-value");
   surplusEl.classList.toggle("deficit", plan.deficit);
@@ -253,16 +261,15 @@ function refresh() {
 
   setText($("six-month-target"), formatMoney(plan.sixMonthGoal));
   setText($("starter-target"), formatMoney(plan.starterGoal));
-  setText($("runway"), plan.runwayMonths === null
-    ? "—"
-    : `${plan.runwayMonths.toFixed(1)} mo`);
+  renderRunwayVisual(plan);
+  updateDebtSectionGate(plan);
   setText($("starter-pct"), `${Math.round(plan.starterProgress)}%`);
   setText($("six-pct"), `${Math.round(plan.sixMonthProgress)}%`);
   $("starter-bar").style.width = `${plan.starterProgress}%`;
   $("six-bar").style.width = `${plan.sixMonthProgress}%`;
 
   setText($("debt-total"), formatMoney(plan.totalDebt));
-  setText($("debt-apr"), plan.highestApr ? `${plan.highestApr}%` : "—");
+  setText($("debt-apr"), plan.highestApr ? `${plan.highestApr}%` : "...");
   setText($("safe-to-spend"), formatMoney(plan.safeToSpend));
   setText($("next-action"), plan.nextAction);
   setText($("stage-label"), stageLabel(plan.stage));
@@ -277,13 +284,64 @@ function refresh() {
 
 function stageLabel(stage) {
   const map = {
-    setup: "Getting started",
-    starter: "Stage 1 — Starter buffer",
-    debt: "Stage 2 — Debt payoff",
-    reserve: "Stage 3 — Six-month reserve",
-    complete: "Goals met (cash reserve)",
+    setup: "Getting oriented",
+    starter: "Starter cushion",
+    debt: "Attack expensive debt",
+    reserve: "Fill the reserve",
+    complete: "Reserve complete",
   };
   return map[stage] ?? stage;
+}
+
+function renderRunwayVisual(plan) {
+  const segments = [...document.querySelectorAll("#runway-segments .runway-segment")];
+  const filledDisplay = $("runway-filled-display");
+  const runwayDetail = $("runway");
+  const essentials = plan.essentials;
+  const months = plan.runwayMonths;
+
+  let fullMonths = 0;
+  let partial = 0;
+  let displayMonths = 0;
+
+  if (essentials > 0 && months !== null && Number.isFinite(months)) {
+    const capped = Math.min(6, Math.max(0, months));
+    fullMonths = Math.floor(capped);
+    partial = capped - fullMonths;
+    displayMonths = fullMonths;
+  }
+
+  segments.forEach((seg, index) => {
+    seg.classList.remove("filled", "partial");
+    seg.style.removeProperty("--partial");
+    if (index < fullMonths) {
+      seg.classList.add("filled");
+    } else if (index === fullMonths && partial > 0) {
+      seg.classList.add("partial");
+      seg.style.setProperty("--partial", String(partial));
+    }
+  });
+
+  if (filledDisplay) {
+    filledDisplay.textContent = String(displayMonths).padStart(2, "0");
+  }
+
+  if (runwayDetail) {
+    if (essentials <= 0 || parseAmount($("essentials")?.value) === null) {
+      runwayDetail.textContent = "Enter essentials to measure runway";
+    } else if (months === null) {
+      runwayDetail.textContent = "Add savings to start the clock";
+    } else {
+      runwayDetail.textContent = `${months.toFixed(1)} months of essentials in accessible cash`;
+    }
+  }
+}
+
+function updateDebtSectionGate(plan) {
+  const section = $("debts-section");
+  if (!section || section.dataset.initialized) return;
+  section.open = plan.priorityDebts.length > 0;
+  section.dataset.initialized = "1";
 }
 
 function bindEvents() {
@@ -297,6 +355,7 @@ function bindEvents() {
 
   $("load-demo").addEventListener("click", () => {
     applyFormState(demoInput());
+    $("debts-section").open = true;
     refresh();
   });
 
