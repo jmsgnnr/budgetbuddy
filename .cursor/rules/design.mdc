@@ -1,0 +1,6 @@
+---
+description: @jmsgnnr distinctive UI and quality bar
+alwaysApply: true
+---
+
+Read AGENTS.md before implementing any UI, copy, tests or release. This is a user-owned creative engineering project, not a generic SaaS template. Make product-specific, visual, intentional design decisions. Preserve accessibility, functionality and privacy. Inspect screenshots at 1440px and 390px, run automated plus real browser tests, and do not declare release until the live GitHub Pages build is verified. The supervising lead must approve the design quality, not just a green test suite. Attribute @jmsgnnr, credit third-party work correctly and avoid em dashes in public copy. Do not invoke additional paid AI agents or make unrelated changes.
