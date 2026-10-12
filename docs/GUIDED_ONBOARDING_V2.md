@@ -31,3 +31,11 @@ The current site has a distinct visual identity but asks too much at once. Prese
 
 ## Preferred layout
 Desktop: compact title and start prompt, vertical numbered step rail with active question card, optional sticky miniature progress only if it doesn't crowd. Mobile: one big question and clear input without scrolling. Deliberate editorial type, tactile tab borders, one highlight color. Existing graphic six-month runway migrates into the results section. No generic finance SaaS cards.
+
+## Continue button regression and release guard (2026-10-12)
+
+The user's first live test experienced an unresponsive Continue button after PR #1 was merged. Headless Chrome confirmed that entering a valid numeric income did work, but the original Continue button started `disabled` with **no explanation** when input was missing. Pressing Enter in an amount field also did not advance reliably.
+
+Do not silently disable Continue. It must always be clickable; if incomplete, show an adjacent accessible `role="alert"` message with the exact requirement, focus the relevant field, and remain on the current step. Clear the message when valid. Support Enter from inputs without submitting/reloading the page; retain native keyboard interactions for select menus. Browser autofill values should be checked on click even if no input event was emitted.
+
+Accept zero as a genuine answer. Show validation for negative debt values as well as missing salary, essentials, fun, and savings. Preserve pay-period conversion, optional debt branching, old-browser-saved-data migration, and no offsite requests. Always run actual live GitHub Pages smoke testing after publication in addition to localhost tests. A green deployment badge does not guarantee the current end user's interaction works.

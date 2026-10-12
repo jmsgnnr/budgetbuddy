@@ -464,10 +464,10 @@ function renderOnboardingUi() {
     if (question) question.hidden = isComplete && !isActive;
     if (editLabel) editLabel.hidden = !(isComplete && !isActive);
 
+    // Keep Continue clickable. A disabled CTA silently fails for blank inputs,
+    // stale autofill state, and keyboard users. Validation lives in completeStep.
     const continueBtn = panel?.querySelector(".step-continue");
-    if (continueBtn) {
-      continueBtn.disabled = !stepIsValid(step);
-    }
+    if (continueBtn) continueBtn.disabled = false;
   }
 
   const planSection = $("plan-results");
@@ -497,8 +497,44 @@ function openStep(step, { focusHeading = true, editing = false } = {}) {
   }
 }
 
+function showStepError(step, message) {
+  const panel = $(`step-${step}-panel`);
+  if (!panel) return;
+  let error = $(`step-${step}-error`);
+  if (!error) {
+    error = document.createElement("p");
+    error.id = `step-${step}-error`;
+    error.className = "step-error";
+    error.setAttribute("role", "alert");
+    panel.querySelector(".step-actions")?.before(error);
+  }
+  error.textContent = message;
+  error.hidden = !message;
+}
+
+function stepErrorMessage(step, state) {
+  if (step === 1) return "Enter your take-home pay to continue, even if it is $0. Use numbers without commas.";
+  if (step === 2) return "Enter your monthly necessities to continue. $0 is okay.";
+  if (step === 3) return "Enter your monthly fun spending to continue. $0 is okay.";
+  if (step === 4) return state.hasDebt === null
+    ? "Choose Yes or No to continue."
+    : "Enter valid debt amounts, or remove any negative numbers.";
+  return "Enter how much emergency cash you have saved, even if it is $0.";
+}
+
 function completeStep(step) {
-  if (!stepIsValid(step)) return;
+  const state = readFormState();
+  if (!stepIsValid(step, state)) {
+    showStepError(step, stepErrorMessage(step, state));
+    const panel = $(`step-${step}-panel`);
+    (step === 4
+      ? (state.hasDebt === null
+          ? panel?.querySelector(".debt-choice-btn")
+          : panel?.querySelector('#debt-list input:invalid'))
+      : panel?.querySelector('input[type="number"]'))?.focus();
+    return;
+  }
+  showStepError(step, "");
   onboarding.completed.add(step);
   if (step === STEP_COUNT) {
     onboarding.complete = true;
@@ -528,6 +564,7 @@ function refresh() {
 
   updateIncomeMonthlyDisplay();
   renderOnboardingUi();
+  if (stepIsValid(onboarding.activeStep)) showStepError(onboarding.activeStep, "");
 
   const state = readFormState();
   if (!onboarding.complete) {
@@ -690,7 +727,21 @@ function bindOnboardingEvents() {
 }
 
 function bindEvents() {
-  document.querySelector("#calculator").addEventListener("input", (e) => {
+  const form = document.querySelector("#calculator");
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!onboarding.complete) completeStep(onboarding.activeStep);
+  });
+  form.addEventListener("keydown", (event) => {
+    // Multiple buttons prevent implicit HTML form submission in some browsers.
+    // Explicitly advance from text/number fields, while leaving select menus
+    // and button keyboard handling to their native accessible interactions.
+    if (event.key !== "Enter" || event.isComposing ||
+        !event.target.matches('input[type="number"], input[type="text"]')) return;
+    event.preventDefault();
+    if (!onboarding.complete) completeStep(onboarding.activeStep);
+  });
+  form.addEventListener("input", (e) => {
     if (e.target.id === "income" && e.target.dataset.legacyMonthly === "1") {
       delete e.target.dataset.legacyMonthly;
     }

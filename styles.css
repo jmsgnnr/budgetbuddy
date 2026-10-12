@@ -1247,3 +1247,15 @@ input[type="range"] {
   .step-panel .hint { margin: 0.45rem 0; font-size: 0.83rem; }
   .onboarding-form label { margin-top: 0.3rem; }
 }
+
+/* Never leave the next-step action inert without an explanation. */
+.step-error {
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.65rem 0.8rem;
+  border-left: 4px solid var(--pink);
+  background: var(--bone);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.step-error[hidden] { display: none; }
