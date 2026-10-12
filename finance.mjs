@@ -3,8 +3,74 @@
  * No DOM or storage — safe for Node tests and browser import.
  */
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 export const STARTER_OPTIONS = [500, 1000];
+
+/** Pay cadence keys stored with raw paycheck amounts. */
+export const PAY_PERIODS = [
+  "weekly",
+  "biweekly",
+  "semimonthly",
+  "monthly",
+  "yearly",
+];
+
+/**
+ * Convert a paycheck amount to an approximate monthly equivalent.
+ * weekly ×52/12, biweekly ×26/12, semimonthly ×2, monthly ×1, yearly ÷12.
+ */
+export function monthlyFromPayPeriod(amount, period) {
+  if (amount === null || amount === undefined || !Number.isFinite(amount)) {
+    return null;
+  }
+  const a = Math.max(0, amount);
+  switch (period) {
+    case "weekly":
+      return (a * 52) / 12;
+    case "biweekly":
+      return (a * 26) / 12;
+    case "semimonthly":
+      return a * 2;
+    case "monthly":
+      return a;
+    case "yearly":
+      return a / 12;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Resolve stored income to a monthly number for computePlan.
+ * Legacy saves stored income already as monthly (no cadence conversion).
+ */
+export function resolveMonthlyIncome({
+  income,
+  incomePayPeriod = "monthly",
+  incomeLegacyMonthly = false,
+}) {
+  const raw = parseAmount(income);
+  if (raw === null) return null;
+  if (incomeLegacyMonthly) return raw;
+  const period = PAY_PERIODS.includes(incomePayPeriod) ? incomePayPeriod : "monthly";
+  return monthlyFromPayPeriod(raw, period);
+}
+
+/** Step validators for guided onboarding (0 is valid where noted). */
+export function validateIncomeStep(income, payPeriod = "monthly") {
+  const raw = parseAmount(income);
+  if (raw === null) return false;
+  if (!PAY_PERIODS.includes(payPeriod)) return false;
+  return monthlyFromPayPeriod(raw, payPeriod) !== null;
+}
+
+export function validateAmountStep(value) {
+  return parseAmount(value) !== null;
+}
+
+export function validateDebtChoiceStep(hasDebt) {
+  return hasDebt === true || hasDebt === false;
+}
 
 /** Parse user input to a finite nonnegative number, or null if invalid/blank. */
 export function parseAmount(value) {
@@ -306,13 +372,17 @@ export function computePlan(input) {
 export function demoInput() {
   return {
     income: "4200",
+    incomePayPeriod: "monthly",
+    incomeLegacyMonthly: false,
     essentials: "2100",
     wants: "650",
     currentSavings: "350",
     starterGoal: 1000,
+    hasDebt: true,
     debtMethod: "avalanche",
     emergencyContribution: null,
     wantsCutScenario: "0",
+    onboardingComplete: true,
     debts: [
       {
         label: "Sample credit card",
