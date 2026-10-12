@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import {
   parseAmount,
   sixMonthTarget,
-  effectiveStarterGoal,
   monthlySurplus,
   monthlyFromPayPeriod,
   resolveMonthlyIncome,
@@ -110,14 +109,31 @@ describe("monthlySurplus and deficits", () => {
   });
 });
 
-describe("six-month target and starter cap", () => {
-  it("six months of essentials", () => {
+describe("six-month reference without mandatory starter threshold", () => {
+  it("uses six months of essential expenses", () => {
     assert.equal(sixMonthTarget(1500), 9000);
   });
 
-  it("starter never exceeds six-month goal", () => {
-    assert.equal(effectiveStarterGoal(1000, 600), 600);
-    assert.equal(effectiveStarterGoal(500, 12000), 500);
+  it("accepts zero savings and does not impose a $500 or $1,000 minimum", () => {
+    const plan = computePlan({
+      income: "3000", essentials: "1800", wants: "400", currentSavings: "0",
+      debts: [],
+    });
+    assert.equal(plan.currentSavings, 0);
+    assert.equal(plan.sixMonthGoal, 10800);
+    assert.equal(plan.sixMonthProgress, 0);
+    assert.equal(plan.stage, STAGES.RESERVE);
+    assert.doesNotMatch(plan.nextAction, /\\$500|\\$1,000|starter/i);
+  });
+
+  it("does not gate debt priority behind a savings balance", () => {
+    const plan = computePlan({
+      income: "3500", essentials: "1800", wants: "400", currentSavings: "0",
+      debts: [{label: "Card", balance: "1500", apr: "24", minimumPayment: "60"}],
+    });
+    assert.equal(plan.stage, STAGES.DEBT);
+    assert.match(plan.nextAction, /Card/);
+    assert.doesNotMatch(plan.nextAction, /required savings|\\$500|\\$1,000/i);
   });
 });
 
@@ -192,7 +208,7 @@ describe("computePlan integration", () => {
       essentials: "2000",
       wants: "500",
       currentSavings: "0",
-      starterGoal: 1000,
+
       emergencyContribution: "9999",
       debts: [{ minimumPayment: "200" }],
     });
@@ -206,7 +222,7 @@ describe("computePlan integration", () => {
       essentials: "2000",
       wants: "800",
       currentSavings: "1000",
-      starterGoal: 1000,
+
       wantsCutScenario: "200",
       debts: [],
     });
@@ -231,16 +247,17 @@ describe("computePlan integration", () => {
     const info = determineStage({
       currentSavings: 0,
       essentialMonthly: 1000,
-      starterGoal: 1000,
+
       sixMonthGoal: 6000,
       debts: [],
       surplus: -100,
     });
     assert.equal(info.blocked, true);
+    assert.equal(info.stage, STAGES.DEFICIT);
     assert.equal(determineStage({
       currentSavings: 2000,
       essentialMonthly: 1000,
-      starterGoal: 1000,
+
       sixMonthGoal: 6000,
       debts: [{ balance: 500, apr: 20, minimumPayment: 25 }],
       surplus: 200,

@@ -1,8 +1,6 @@
 import {
   SCHEMA_VERSION,
-  STARTER_OPTIONS,
   computePlan,
-  demoInput,
   parseAmount,
   resolveMonthlyIncome,
   sanitizeLabel,
@@ -50,8 +48,6 @@ function readDebtsFromDom() {
 }
 
 function readFormState() {
-  const starterRaw = document.querySelector('input[name="starterGoal"]:checked')?.value;
-  const starterGoal = starterRaw ? Number(starterRaw) : 1000;
   const surplusSlider = $("emergency-slider");
   const wantsCutSlider = $("wants-cut-slider");
   const hasDebt = readHasDebtChoice();
@@ -63,7 +59,6 @@ function readFormState() {
     essentials: $("essentials")?.value ?? "",
     wants: $("wants")?.value ?? "",
     currentSavings: $("current-savings")?.value ?? "",
-    starterGoal: STARTER_OPTIONS.includes(starterGoal) ? starterGoal : 1000,
     hasDebt,
     debtMethod: $("debt-method")?.value === "snowball" ? "snowball" : "avalanche",
     emergencyContribution: surplusSlider?.value ?? "0",
@@ -119,11 +114,6 @@ function applyFormState(state) {
   $("essentials").value = state.essentials ?? "";
   $("wants").value = state.wants ?? "";
   $("current-savings").value = state.currentSavings ?? "";
-  const starter = state.starterGoal ?? 1000;
-  const starterRadio = document.querySelector(
-    `input[name="starterGoal"][value="${starter}"]`
-  );
-  if (starterRadio) starterRadio.checked = true;
   $("debt-method").value = state.debtMethod ?? "avalanche";
 
   const debtList = $("debt-list");
@@ -268,6 +258,20 @@ function saveToStorage() {
   }
 }
 
+function isLegacyDemo(form) {
+  // The old demo stored fictional values just like a real plan. Only clear
+  // the exact bundled fixture; never discard real user-entered finances.
+  return form?.income === "4200" &&
+    form?.essentials === "2100" &&
+    form?.wants === "650" &&
+    form?.currentSavings === "350" &&
+    form?.debts?.length === 2 &&
+    form.debts[0]?.label === "Sample credit card" &&
+    form.debts[0]?.balance === "2800" &&
+    form.debts[1]?.label === "Sample personal loan" &&
+    form.debts[1]?.balance === "4500";
+}
+
 function loadFromStorage() {
   const banner = $("storage-banner");
   try {
@@ -276,6 +280,10 @@ function loadFromStorage() {
     const parsed = JSON.parse(raw);
     const version = parsed?.schemaVersion;
     if (version !== SCHEMA_VERSION && version !== 1) return false;
+    if (isLegacyDemo(parsed.form)) {
+      localStorage.removeItem(STORAGE_KEY);
+      return false;
+    }
     const form = migrateStoredForm(parsed.form ?? {});
     applyFormState(form);
     return true;
@@ -325,7 +333,6 @@ function clearStorage() {
     essentials: "",
     wants: "",
     currentSavings: "",
-    starterGoal: 1000,
     hasDebt: null,
     debtMethod: "avalanche",
     emergencyContribution: "0",
@@ -365,10 +372,10 @@ function stepIsValid(step, state = readFormState()) {
       return validateIncomeStep(state.income, state.incomePayPeriod);
     case 2:
     case 3:
+      return validateAmountStep(step === 2 ? state.essentials : state.wants);
     case 5:
-      return validateAmountStep(
-        step === 2 ? state.essentials : step === 3 ? state.wants : state.currentSavings
-      );
+      // A blank savings field is an intentional $0, not a blocker.
+      return state.currentSavings === "" || validateAmountStep(state.currentSavings);
     case 4:
       if (!validateDebtChoiceStep(state.hasDebt)) return false;
       if (state.hasDebt === false) return true;
@@ -415,10 +422,8 @@ function buildStepSummary(step, state = readFormState()) {
           : "Debt listed, details optional";
       }
       return "";
-    case 5: {
-      const starter = state.starterGoal ?? 1000;
-      return `${formatMoney(parseAmount(state.currentSavings) ?? 0)} saved · $${starter} starter target`;
-    }
+    case 5:
+      return `${formatMoney(parseAmount(state.currentSavings) ?? 0)} emergency savings`;
     default:
       return "";
   }
@@ -519,7 +524,7 @@ function stepErrorMessage(step, state) {
   if (step === 4) return state.hasDebt === null
     ? "Choose Yes or No to continue."
     : "Enter valid debt amounts, or remove any negative numbers.";
-  return "Enter how much emergency cash you have saved, even if it is $0.";
+  return "Enter a valid amount, or leave savings blank if you have $0.";
 }
 
 function completeStep(step) {
@@ -535,6 +540,9 @@ function completeStep(step) {
     return;
   }
   showStepError(step, "");
+  if (step === 5 && state.currentSavings === "") {
+    $("current-savings").value = "0";
+  }
   onboarding.completed.add(step);
   if (step === STEP_COUNT) {
     onboarding.complete = true;
@@ -615,11 +623,8 @@ function refresh() {
   });
 
   setText($("six-month-target"), formatMoney(plan.sixMonthGoal));
-  setText($("starter-target"), formatMoney(plan.starterGoal));
   renderRunwayVisual(plan);
-  setText($("starter-pct"), `${Math.round(plan.starterProgress)}%`);
   setText($("six-pct"), `${Math.round(plan.sixMonthProgress)}%`);
-  $("starter-bar").style.width = `${plan.starterProgress}%`;
   $("six-bar").style.width = `${plan.sixMonthProgress}%`;
 
   setText($("debt-total"), formatMoney(plan.totalDebt));
@@ -639,7 +644,7 @@ function refresh() {
 function stageLabel(stage) {
   const map = {
     setup: "Getting oriented",
-    starter: "Starter cushion",
+    deficit: "Review your budget",
     debt: "Attack expensive debt",
     reserve: "Fill the reserve",
     complete: "Reserve complete",
@@ -762,14 +767,6 @@ function bindEvents() {
     refresh();
   });
 
-  $("load-demo").addEventListener("click", () => {
-    resetOnboardingState();
-    applyFormState(demoInput());
-    onboarding.complete = true;
-    onboarding.completed = new Set([1, 2, 3, 4, 5]);
-    refresh();
-  });
-
   $("export-json").addEventListener("click", exportJson);
   $("clear-data").addEventListener("click", clearStorage);
 
@@ -793,8 +790,7 @@ export function initApp() {
       essentials: "",
       wants: "",
       currentSavings: "",
-      starterGoal: 1000,
-      hasDebt: null,
+        hasDebt: null,
       debtMethod: "avalanche",
       emergencyContribution: "0",
       wantsCutScenario: "0",

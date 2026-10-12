@@ -1,10 +1,9 @@
 /**
- * Pure finance calculations for Mubu Stability Planner.
+ * Pure finance calculations for BudgetBuddy.
  * No DOM or storage — safe for Node tests and browser import.
  */
 
 export const SCHEMA_VERSION = 2;
-export const STARTER_OPTIONS = [500, 1000];
 
 /** Pay cadence keys stored with raw paycheck amounts. */
 export const PAY_PERIODS = [
@@ -97,13 +96,6 @@ export function sixMonthTarget(essentialMonthly) {
   return e * 6;
 }
 
-/** Starter goal capped at six-month target. */
-export function effectiveStarterGoal(starterChoice, sixMonthGoal) {
-  const starter = STARTER_OPTIONS.includes(starterChoice) ? starterChoice : 1000;
-  const cap = Math.max(0, sixMonthGoal);
-  return Math.min(starter, cap);
-}
-
 export function totalDebtMinimums(debts) {
   if (!Array.isArray(debts)) return 0;
   return debts.reduce((sum, d) => {
@@ -187,7 +179,7 @@ export function monthsToSixMonthReserve({
 
 export const STAGES = {
   SETUP: "setup",
-  STARTER: "starter",
+  DEFICIT: "deficit",
   DEBT: "debt",
   RESERVE: "reserve",
   COMPLETE: "complete",
@@ -199,30 +191,20 @@ export const STAGES = {
 export function determineStage({
   currentSavings,
   essentialMonthly,
-  starterGoal,
   sixMonthGoal,
   debts,
   surplus,
 }) {
   const savings = Math.max(0, currentSavings ?? 0);
-  const starter = effectiveStarterGoal(starterGoal, sixMonthGoal);
   const six = sixMonthGoal ?? sixMonthTarget(essentialMonthly);
   const hasConsumerDebt = totalDebtBalance(debts) > 0;
 
   if (surplus < 0) {
     return {
-      stage: STAGES.STARTER,
+      stage: STAGES.DEFICIT,
       blocked: true,
       nextAction:
-        "Your plan shows a monthly deficit. Reduce essentials or wants, or increase income, before funding stability goals.",
-    };
-  }
-
-  if (savings < starter) {
-    return {
-      stage: STAGES.STARTER,
-      blocked: false,
-      nextAction: `Build your starter emergency buffer to $${starter.toLocaleString("en-US")} in an accessible savings account.`,
+        "Your monthly spending and debt minimums are higher than your income. Review the gap first. There is no required savings balance to get started.",
     };
   }
 
@@ -232,8 +214,8 @@ export function determineStage({
       stage: STAGES.DEBT,
       blocked: false,
       nextAction: target
-        ? `Keep all minimum payments, then put extra surplus toward "${target.label}" (${target.apr}% APR).`
-        : "Keep minimum payments on all debts; avoid new consumer debt.",
+        ? `Keep minimum payments current. Consider a cash cushion that fits your life while directing extra money toward "${target.label}" (${target.apr}% APR). No fixed savings minimum is required.`
+        : "Keep minimum payments current and build cash savings at your own pace.",
     };
   }
 
@@ -242,7 +224,7 @@ export function determineStage({
       stage: STAGES.RESERVE,
       blocked: false,
       nextAction:
-        "Grow cash savings toward six months of essential expenses (keep this in bank savings, not investments).",
+        "Start or grow emergency savings with whatever amount fits your budget. Six months of essentials is a long-term reference, not a required starting balance.",
     };
   }
 
@@ -250,7 +232,7 @@ export function determineStage({
     stage: STAGES.COMPLETE,
     blocked: false,
     nextAction:
-      "You’ve reached the six-month cash reserve goal. Consider responsible investing only after reviewing your full financial picture (this app does not provide investment advice).",
+      "Your cash covers six months of essentials. Review your other obligations and goals before deciding what to do next.",
   };
 }
 
@@ -273,9 +255,6 @@ export function computePlan(input) {
   const essentials = parseAmount(input.essentials) ?? 0;
   const wants = parseAmount(input.wants) ?? 0;
   const currentSavings = parseAmount(input.currentSavings) ?? 0;
-  const starterChoice = STARTER_OPTIONS.includes(input.starterGoal)
-    ? input.starterGoal
-    : 1000;
   const debts = (input.debts ?? []).map((d, i) => ({
     label: sanitizeLabel(d?.label) || `Debt ${i + 1}`,
     balance: parseAmount(d?.balance) ?? 0,
@@ -287,7 +266,6 @@ export function computePlan(input) {
   const wantsCutScenario = parseAmount(input.wantsCutScenario) ?? 0;
 
   const sixMonthGoal = sixMonthTarget(essentials);
-  const starter = effectiveStarterGoal(starterChoice, sixMonthGoal);
   const surplus = monthlySurplus({ income, essentials, wants, debts });
   const scenarioWants = Math.max(0, wants - wantsCutScenario);
   const scenarioSurplus = monthlySurplus({
@@ -316,7 +294,6 @@ export function computePlan(input) {
     : determineStage({
         currentSavings,
         essentialMonthly: essentials,
-        starterGoal: starterChoice,
         sixMonthGoal,
         debts,
         surplus,
@@ -330,8 +307,6 @@ export function computePlan(input) {
     essentials,
     wants,
     currentSavings,
-    starterChoice,
-    starterGoal: starter,
     sixMonthGoal,
     debts,
     debtMethod,
@@ -351,7 +326,6 @@ export function computePlan(input) {
       }),
     },
     runwayMonths: runwayMonths(currentSavings, essentials),
-    starterProgress: progressPercent(currentSavings, starter),
     sixMonthProgress: progressPercent(currentSavings, sixMonthGoal),
     monthsToSixMonth: missingCoreInputs ? null : monthsToSixMonthReserve({
       currentSavings,
@@ -366,36 +340,5 @@ export function computePlan(input) {
     stage: stageInfo.stage,
     blocked: stageInfo.blocked,
     nextAction: stageInfo.nextAction,
-  };
-}
-
-export function demoInput() {
-  return {
-    income: "4200",
-    incomePayPeriod: "monthly",
-    incomeLegacyMonthly: false,
-    essentials: "2100",
-    wants: "650",
-    currentSavings: "350",
-    starterGoal: 1000,
-    hasDebt: true,
-    debtMethod: "avalanche",
-    emergencyContribution: null,
-    wantsCutScenario: "0",
-    onboardingComplete: true,
-    debts: [
-      {
-        label: "Sample credit card",
-        balance: "2800",
-        apr: "22.9",
-        minimumPayment: "85",
-      },
-      {
-        label: "Sample personal loan",
-        balance: "4500",
-        apr: "11.5",
-        minimumPayment: "120",
-      },
-    ],
   };
 }
